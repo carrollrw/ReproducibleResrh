@@ -1,0 +1,80 @@
+---
+title: "PA1_template.Rmd"
+author: "Reginald W Carroll"
+date: "March 4, 2018"
+output: html_document
+---
+===================================================
+
+```{r}
+
+##
+## Loading an processing the data
+##
+
+library(ggplot2)
+library(dplyr)
+library(lattice)
+options(scipen = 999)
+
+setwd("C:/Users/ReginaldCarroll/Documents/R Programming/Coursera/Data Files")
+
+
+activity <- read.csv("activity.csv")
+activity <- tbl_df(activity)
+
+##
+## What is the mean total number of steps taken per day?
+##
+
+activity_days <- activity %>% group_by(date) %>% summarise(total.steps = sum(steps))
+hist(activity_days$total.steps, breaks = 25, main = "Histogram of Total Steps per Day")
+
+##
+## Calculate the mean and median
+##
+
+mean((activity_days$total.steps), na.rm = TRUE)
+median((activity_days$total.steps), na.rm = TRUE)
+
+##
+## What is the average daily activity pattern?
+##
+
+activity$interval.factor <- as.factor(activity$interval)
+
+activity_interval <- activity %>% group_by(interval.factor) %>% 
+  summarise(mean.steps = mean(steps, na.rm =TRUE))
+
+##
+##  Make a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+##
+
+activity_interval$interval <- as.numeric(as.character(activity_interval$interval.factor))
+plot(activity_interval$interval, activity_interval$mean.steps, type = "l", xaxt="n", 
+     xlab = "<-----------------Morning         5-minute interval          Night----------------->", 
+     ylab = "mean steps", main = "Daily Activity Pattern", sub = "Average steps recorded for October-November 2012")
+axis(1, at = seq(100, 2300, by = 100), las = 2)
+
+##
+## Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+##
+
+max_steps_interval <- which.max(activity_interval$mean.steps)
+print(activity_interval[max_steps_interval,])
+
+##
+## Imputing missing values
+##
+
+sum(is.na(activity$steps))
+
+activity$weekday <- weekdays(as.Date(activity$date))
+activity$weekday <- factor(activity$weekday, levels= c("Monday", 
+                                                       "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))
+
+activity_day_NA <- activity %>% group_by(weekday) %>% summarise(sum(is.na(steps)))
+print(activity_day_NA)
+
+```
+
